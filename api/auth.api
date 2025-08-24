@@ -1,0 +1,83 @@
+syntax = "v1"
+
+@server (
+	prefix: /api/auth
+	group:  auth
+)
+service imy-api {
+	@doc (
+		summary: "身份验证"
+	)
+	@handler AuthCheck
+	post /authCheck (AuthCheckReq) returns (AuthCheckResp)
+
+	@doc (
+		sumary: "邮箱验证码登陆/注册"
+	)
+	@handler EmailCode
+	post /emailCode (EmailCodeReq) returns (EmailCodeResp)
+
+	@doc (
+		summary: "邮箱密码登陆"
+	)
+	@handler EmailPasswordLogin
+	post /emailPasswordLogin (EmailPasswordLoginReq) returns (EmailPasswordLoginResp)
+
+	@doc (
+		summary: "邮箱密码注册"
+	)
+	@handler EmailPasswordRegister
+	post /emailPasswordRegister (EmailPasswordRegisterReq) returns (EmailPasswordRegisterResp)
+
+	@doc (
+		summary: "获取邮箱验证码"
+	)
+	@handler GetEmailCode
+	post /getEmailCode (GetEmailCodeReq) returns (GetEmailCodeResp)
+}
+
+type AuthCheckReq {
+	Token     string `head:"token"`
+	ValidPath string `head:"validPath"`
+}
+
+type AuthCheckResp {
+	UUID string `json:"uuid"`
+}
+
+type EmailCodeReq {
+	Code  string `json:"code"`
+	Email string `json:"email"`
+}
+
+type EmailCodeResp {
+	UUID string `json:"uuid"`
+}
+
+type EmailPasswordLoginReq {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type EmailPasswordLoginResp {
+	UUID string `json:"uuid"`
+}
+
+type EmailPasswordRegisterReq {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	Code     string `json:"code"`
+}
+
+type EmailPasswordRegisterResp {
+	UUID string `json:"uuid"`
+}
+
+type GetEmailCodeReq {
+	Email string `json:"email"`
+}
+
+type GetEmailCodeResp {
+	Code string `json:"code"`
+}
+

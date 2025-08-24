@@ -1,0 +1,223 @@
+syntax = "v1"
+
+@server (
+	prefix: /api/chat
+	group:  chat
+)
+service imy-api {
+	@doc (
+		summary: "创建或获取单聊会话"
+	)
+	@handler CreatePrivateConversation
+	post /createPrivate (CreatePrivateConversationReq) returns (ConversationInfo)
+
+	@doc (
+		summary: "创建群聊"
+	)
+	@handler CreateGroupConversation
+	post /createGroup (CreateGroupConversationReq) returns (ConversationInfo)
+
+	@doc (
+		summary: "获取我的会话列表"
+	)
+	@handler GetConversations
+	post /getConversations (GetConversationsReq) returns (GetConversationsResp)
+
+	@doc (
+		summary: "获取会话详情"
+	)
+	@handler GetConversationDetail
+	post /getConversationDetail (GetConversationDetailReq) returns (GetConversationDetailResp)
+
+	@doc (
+		summary: "群聊添加成员"
+	)
+	@handler AddMembers
+	post /addMembers (AddMembersReq)
+
+	@doc (
+		summary: "群聊移除成员/退群"
+	)
+	@handler RemoveMember
+	post /removeMember (RemoveMemberReq)
+
+	@doc (
+		summary: "更新个人会话设置"
+	)
+	@handler UpdateConversationSettings
+	post /updateSettings (UpdateConversationSettingsReq)
+
+	@doc (
+		summary: "发送消息"
+	)
+	@handler SendMessage
+	post /sendMessage (SendMessageReq) returns (SendMessageResp)
+
+	@doc (
+		summary: "拉取历史消息"
+	)
+	@handler GetMessages
+	post /getMessages (GetMessagesReq) returns (GetMessagesResp)
+
+	@doc (
+		summary: "上报已读进度"
+	)
+	@handler ReadMessages
+	post /readMessages (ReadMessagesReq) returns (ReadMessagesResp)
+
+	@doc (
+		summary: "撤回消息"
+	)
+	@handler RecallMessage
+	post /recallMessage (RecallMessageReq)
+
+	@doc (
+		summary: "获取未读计数"
+	)
+	@handler GetUnreadCounts
+	post /getUnreadCounts (GetUnreadCountsReq) returns (GetUnreadCountsResp)
+}
+
+// ========== 请求与响应定义 ==========
+type CreatePrivateConversationReq {
+	UUID     string `head:"uuid"`
+	PeerUUID string `json:"peerUuid"`
+}
+
+type CreateGroupConversationReq {
+	UUID        string   `head:"uuid"`
+	Name        string   `json:"name"`
+	MemberUUIDs []string `json:"memberUuids"`
+}
+
+type GetConversationsReq {
+	UUID      string `head:"uuid"`
+	PageSize  int    `json:"pageSize,default=10"`
+	PageIndex int    `json:"pageIndex,default=1"`
+}
+
+type ConversationInfo {
+	ConversationId uint32 `json:"conversationId"`
+	Type           uint32 `json:"type"` // 1:单聊 2:群聊
+	PrivateKey     string `json:"privateKey"`
+	Name           string `json:"name"`
+	MemberCount    uint32 `json:"memberCount"`
+	LastMessageId  uint64 `json:"lastMessageId"`
+	Avatar         string `json:"avatar"`
+	Extra          string `json:"extra"`
+}
+
+type GetConversationsResp {
+	Conversations []ConversationInfo `json:"conversations"`
+}
+
+type GetConversationDetailReq {
+	UUID           string `head:"uuid"`
+	ConversationId uint32 `json:"conversationId"`
+}
+
+type ConversationMember {
+	UserUUID  string `json:"userUuid"`
+	Role      uint32 `json:"role"`
+	Alias     string `json:"alias"`
+	MuteUntil string `json:"muteUntil"` // RFC3339 字符串
+	IsPinned  uint32 `json:"isPinned"` // 0/1
+}
+
+type GetConversationDetailResp {
+	Info    ConversationInfo     `json:"info"`
+	Members []ConversationMember `json:"members"`
+}
+
+type AddMembersReq {
+	UUID           string   `head:"uuid"`
+	ConversationId uint32   `json:"conversationId"`
+	MemberUUIDs    []string `json:"memberUuids"`
+}
+
+type RemoveMemberReq {
+	UUID           string `head:"uuid"`
+	ConversationId uint32 `json:"conversationId"`
+	RemoveUUID     string `json:"removeUuid"`
+}
+
+type UpdateConversationSettingsReq {
+	UUID           string `head:"uuid"`
+	ConversationId uint32 `json:"conversationId"`
+	Alias          string `json:"alias,optional"`
+	MuteUntil      string `json:"muteUntil,optional"`
+	IsPinned       uint32 `json:"isPinned,optional"` // 0/1
+}
+
+type SendMessageReq {
+	UUID             string   `head:"uuid"`
+	ConversationId   uint32   `json:"conversationId"`
+	ClientMsgId      string   `json:"clientMsgId"`
+	MsgType          uint32   `json:"msgType"` // 1文本、2图片、3语音、4视频、5文件、6系统
+	Content          string   `json:"content"`
+	ContentExtra     string   `json:"contentExtra,optional"`
+	ReplyToMessageId uint64   `json:"replyToMessageId,optional"`
+	MentionedUuids   []string `json:"mentionedUuids,optional"`
+}
+
+type SendMessageResp {
+	ServerMsgId uint64 `json:"serverMsgId"`
+	ClientMsgId string `json:"clientMsgId"`
+	CreatedAt   string `json:"createdAt"`
+}
+
+type GetMessagesReq {
+	UUID           string `head:"uuid"`
+	ConversationId uint32 `json:"conversationId"`
+	BeforeId       uint64 `json:"beforeId,optional"`
+	AfterId        uint64 `json:"afterId,optional"`
+	Limit          int    `json:"limit,default=20"`
+}
+
+type MessageInfo {
+	Id               uint64   `json:"id"`
+	ConversationId   uint32   `json:"conversationId"`
+	SendUuid         string   `json:"sendUuid"`
+	MsgType          uint32   `json:"msgType"`
+	Content          string   `json:"content"`
+	ContentExtra     string   `json:"contentExtra"`
+	ReplyToMessageId uint64   `json:"replyToMessageId"`
+	MentionedUuids   []string `json:"mentionedUuids"`
+	IsSystem         uint32   `json:"isSystem"` // 0/1
+	IsRevoked        uint32   `json:"isRevoked"` // 0/1
+	CreatedAt        string   `json:"createdAt"`
+}
+
+type GetMessagesResp {
+	Messages []MessageInfo `json:"messages"`
+}
+
+type ReadMessagesReq {
+	UUID           string `head:"uuid"`
+	ConversationId uint32 `json:"conversationId"`
+	UpToMessageId  uint64 `json:"upToMessageId"`
+}
+
+type ReadMessagesResp {
+	LastReadMessageId uint64 `json:"lastReadMessageId"`
+}
+
+type RecallMessageReq {
+	UUID           string `head:"uuid"`
+	ConversationId uint32 `json:"conversationId"`
+	MessageId      uint64 `json:"messageId"`
+}
+
+type GetUnreadCountsReq {
+	UUID string `head:"uuid"`
+}
+
+type UnreadItem {
+	ConversationId uint32 `json:"conversationId"`
+	Unread         uint32 `json:"unread"`
+}
+
+type GetUnreadCountsResp {
+	Items []UnreadItem `json:"items"`
+}
+

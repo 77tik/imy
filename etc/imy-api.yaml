@@ -1,0 +1,38 @@
+Name: imy-api
+Host: 0.0.0.0
+Port: 8080
+Timeout: 0
+
+Log:
+  ServiceName: imy
+  Mode: console
+  Encoding: plain
+  Path: ./logs
+  Level: info
+  Compress: true
+  KeepDays: 30
+  StackCooldownMillis: 100
+
+Mysql:
+  DSN: root:root123@tcp(127.0.0.1:3306)/imydb?charset=utf8mb4&parseTime=True&loc=Asia%2FShanghai
+# DSN: lyhmp:yskj2407@tcp(10.0.4.66:6306)/lyhmpdb?charset=utf8mb4&parseTime=True&loc=Asia%2FShanghai
+Auth:
+  AccessSecret: imycayoyi
+  AccessExpire: 86400
+
+Swagger:
+  Host: 127.0.0.1:8031 #change to your server ip
+
+WorkDir:
+  Path: ./work
+
+WhiteList:
+  - /api/auth/emailCode
+  - /api/auth/emailPasswordRegister
+  - /api/auth/getEmailCode
+
+Redis:
+  Addr: 127.0.0.1:6379
+  Password: '123456'
+  DB: 0
+

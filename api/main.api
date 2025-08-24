@@ -1,0 +1,16 @@
+syntax = "v1"
+
+info (
+	title:   "imy API"
+	desc:    "imy server swagger API"
+	version: "v1.0"
+)
+
+import (
+	"common.api"
+	"version.api"
+	"auth.api"
+	"friend.api"
+	"chat.api"
+)
+

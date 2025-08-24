@@ -1,0 +1,51 @@
+Name: imy-gateway
+Host: 0.0.0.0
+Port: 8081
+Timeout: 0
+
+# Backend service to forward requests to
+Upstream: http://127.0.0.1:8080
+
+Auth:
+  AccessSecret: imycayoyi
+  AccessExpire: 86400
+
+# Paths that don't require authentication (regex supported)
+WhiteList:
+  - ^/api/auth/.*
+  - ^/swagger/.*
+  - ^/api/version$
+
+# Optional extra header injections, mapping from claim->header name
+# uuid is always injected into header "uuid" by default to match friend service
+Inject:
+  nickname: X-User-Nickname
+
+CORS:
+  Enabled: true
+  AllowOrigins:
+    - "*"
+  AllowMethods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - PATCH
+    - OPTIONS
+  AllowHeaders:
+    - Authorization
+    - Content-Type
+    - uuid
+    - X-Request-Id
+  ExposeHeaders:
+    - X-Request-Id
+    - Authorization
+    - token
+  AllowCredentials: false
+  MaxAge: 600
+
+RateLimit:
+  Enabled: true
+  RPS: 20
+  Burst: 40
+  Key: ip

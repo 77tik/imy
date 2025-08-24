@@ -1,0 +1,18 @@
+syntax = "v1"
+
+@server (
+	group:  version
+	prefix: /api
+)
+service imy-api {
+	@doc (
+		summary: "版本信息"
+	)
+	@handler Version
+	get /version returns (VersionResponse)
+}
+
+type VersionResponse {
+	Version string `json:"version"` //版本号
+}
+

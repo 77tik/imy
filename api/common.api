@@ -1,0 +1,13 @@
+syntax = "v1"
+
+// 分页
+type Pager {
+	PageSize  int `json:"pageSize,default=10"` // 分页大小, 需要大于 0
+	PageIndex int `json:"pageIndex,default=1"` // 分页页码, 需要大于 0
+}
+
+type PagerForm {
+	PageSize  int `form:"pageSize,default=10"` // 分页大小, 需要大于 0
+	PageIndex int `form:"pageIndex,default=1"` // 分页页码, 需要大于 0
+}
+

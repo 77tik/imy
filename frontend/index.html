@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMY 聊天应用</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .chat-container {
+            height: calc(100vh - 120px);
+        }
+        .message-container {
+            height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+        .sidebar {
+            width: 300px;
+            border-right: 1px solid #e5e7eb;
+        }
+        .chat-main {
+            flex: 1;
+        }
+        .login-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- 登录页面 -->
+    <div id="loginPage" class="login-container">
+        <div class="login-form">
+            <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">IMY 聊天应用</h2>
+            <div id="loginForm">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">邮箱</label>
+                    <input type="email" id="email" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500" placeholder="请输入邮箱">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">密码</label>
+                    <input type="password" id="password" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500" placeholder="请输入密码">
+                </div>
+                <button onclick="login()" class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-200">登录</button>
+                <p class="text-center mt-4">
+                    <a href="#" onclick="showRegister()" class="text-blue-500 hover:underline">没有账号？立即注册</a>
+                </p>
+            </div>
+            <div id="registerForm" style="display: none;">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">邮箱</label>
+                    <input type="email" id="regEmail" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500" placeholder="请输入邮箱">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">密码</label>
+                    <input type="password" id="regPassword" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500" placeholder="请输入密码">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">验证码</label>
+                    <div class="flex">
+                        <input type="text" id="code" class="flex-1 px-3 py-2 border rounded-l-lg focus:outline-none focus:border-blue-500" placeholder="请输入验证码">
+                        <button onclick="getEmailCode()" id="getCodeBtn" class="px-4 py-2 bg-gray-500 text-white rounded-r-lg hover:bg-gray-600">获取验证码</button>
+                    </div>
+                </div>
+                <button onclick="register()" class="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition duration-200">注册</button>
+                <p class="text-center mt-4">
+                    <a href="#" onclick="showLogin()" class="text-blue-500 hover:underline">已有账号？立即登录</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主应用页面 -->
+    <div id="app" style="display: none;">
+        <div class="flex h-screen bg-white">
+            <!-- 侧边栏 -->
+            <div class="sidebar bg-white">
+                <!-- 用户信息 -->
+                <div class="p-4 border-b">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="ml-3">
+                            <div id="userName" class="font-semibold">用户名</div>
+                            <div id="userEmail" class="text-sm text-gray-500">邮箱</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 功能菜单 -->
+                <div class="flex border-b">
+                    <button onclick="showChat()" id="chatTab" class="flex-1 py-3 text-center font-medium text-blue-600 border-b-2 border-blue-600">聊天</button>
+                    <button onclick="showFriends()" id="friendsTab" class="flex-1 py-3 text-center font-medium text-gray-600">好友</button>
+                </div>
+
+                <!-- 聊天列表 -->
+                <div id="chatList" class="overflow-y-auto" style="height: calc(100vh - 140px);">
+                    <div id="conversations" class="divide-y"></div>
+                </div>
+
+                <!-- 好友管理 -->
+                <div id="friendsList" class="hidden overflow-y-auto" style="height: calc(100vh - 140px);">
+                    <div class="p-4">
+                        <div class="mb-4">
+                            <input type="text" id="friendSearch" placeholder="搜索好友或邮箱..." 
+                                   class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+                        </div>
+                        <button onclick="showAddFriendModal()" class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 mb-4">
+                            <i class="fas fa-plus mr-2"></i>添加好友
+                        </button>
+                        <div id="friends" class="space-y-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 主聊天区域 -->
+            <div id="chatMain" class="chat-main flex flex-col">
+                <!-- 聊天头部 -->
+                <div class="p-4 border-b bg-white">
+                    <div id="chatHeader" class="flex items-center justify-between">
+                        <div>
+                            <h3 id="chatTitle" class="font-semibold text-lg">选择一个聊天</h3>
+                            <p id="chatSubtitle" class="text-sm text-gray-500"></p>
+                        </div>
+                        <div id="chatActions" class="hidden">
+                            <button onclick="showGroupInfo()" class="px-3 py-1 bg-gray-100 rounded-lg hover:bg-gray-200">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 消息区域 -->
+                <div id="messageArea" class="message-container bg-gray-50 p-4 hidden">
+                    <div id="messages" class="space-y-4"></div>
+                </div>
+
+                <!-- 输入区域 -->
+                <div id="inputArea" class="p-4 border-t bg-white hidden">
+                    <div class="flex items-center space-x-2">
+                        <input type="text" id="messageInput" placeholder="输入消息..." 
+                               class="flex-1 px-4 py-2 border rounded-full focus:outline-none focus:border-blue-500"
+                               onkeypress="if(event.key === 'Enter') sendMessage()">
+                        <button onclick="sendMessage()" class="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加好友弹窗 -->
+    <div id="addFriendModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-96">
+            <h3 class="text-lg font-semibold mb-4">添加好友</h3>
+            <input type="email" id="friendEmail" placeholder="请输入好友邮箱" 
+                   class="w-full px-3 py-2 border rounded-lg mb-4 focus:outline-none focus:border-blue-500">
+            <div class="flex justify-end space-x-2">
+                <button onclick="closeAddFriendModal()" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400">取消</button>
+                <button onclick="addFriend()" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">发送请求</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 好友验证弹窗 -->
+    <div id="friendRequestsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-96 max-h-96 overflow-y-auto">
+            <h3 class="text-lg font-semibold mb-4">好友请求</h3>
+            <div id="friendRequests" class="space-y-3"></div>
+            <div class="flex justify-end mt-4">
+                <button onclick="closeFriendRequestsModal()" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

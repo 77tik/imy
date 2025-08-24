@@ -1,0 +1,85 @@
+syntax = "v1"
+
+@server (
+	prefix: /api/friend
+	group:  friend
+)
+service imy-api {
+	@doc (
+		summary: "添加好友"
+	)
+	@handler AddFriend
+	post /addFriend (AddFriendReq)
+
+	@doc (
+		summary: "处理好友验证"
+	)
+	@handler ValidFriend
+	post /validFriend (ValidFriendReq)
+
+	@doc (
+		summary: "获取好友验证表"
+	)
+	@handler ValidFriendList
+	post /validFriendList (ValidFriendListReq) returns (ValidFriendListResp)
+
+	@doc (
+		summary: "搜索用户"
+	)
+	@handler SearchUser
+	post /searchUser (SearchUserReq) returns (SearchUserResp)
+
+	@doc (
+		summary: "获取好友列表"
+	)
+	@handler GetFriendList
+	post /getFriendList (GetFriendListReq) returns (GetFriendListResp)
+}
+
+type AddFriendReq {
+	UUID  string `json:"uuid"`
+	RevId string `json:"revId"`
+}
+
+type ValidFriendReq {
+	UUID     string `json:"uuid"` // 操作人id，一般是接受者操作
+	VerifyId uint32 `json:"verifyId"` // 验证表的id
+	Status   uint32 `json:"status"` // 接受还是拒绝
+}
+
+type ValidFriendListReq {
+	UUID string `json:"uuid"`
+}
+
+// 不管我是不是接收方还是发送方，我要的都是接受者和接受者的状态
+type ValidFriendInfo {
+	Id        uint32 `json:"id"`
+	RevId     string `json:"revId"`
+	RevStatus uint32 `json:"revStatus"`
+}
+
+type ValidFriendListResp {
+	Valids []ValidFriendInfo `json:"valids"`
+}
+
+type SearchUserReq {
+	Email string `json:"email"`
+}
+
+type SearchUserResp {
+	RevId string `json:"revId"`
+}
+
+type GetFriendListReq {
+	UUID string `json:"uuid"`
+}
+
+type FriendInfo {
+	UUID   string `json:"uuid"`
+	Notice string `json:"notice"`
+}
+
+type GetFriendListResp {
+	Friends []FriendInfo `json:"friends"`
+}
+
