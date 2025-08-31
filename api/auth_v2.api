@@ -1,0 +1,44 @@
+syntax = "v1"
+
+@server (
+	group:  v2/auth
+	prefix: /v2/auth
+)
+service imy-api {
+	@doc (
+		summary: "账号登陆"
+	)
+	@handler AccountLogin
+	post /login (AccountLoginReq) returns (AccountLoginResp)
+}
+
+type AccountLoginReq {
+	Account  string `json:"account"`
+	Password string `json:"password"`
+}
+
+type AccountLoginResp {
+	Token string `json:"token"`
+}
+
+@server (
+	group:  v2/auth
+	prefix: /v2/auth
+)
+service imy-api {
+	@doc (
+		summary: "账号注册"
+	)
+	@handler AccountRegister
+	post /register (AccountRegisterReq) returns (AccountRegisterResp)
+}
+
+type AccountRegisterReq {
+	Nickname string `json:"nickname"`
+	password string `json:"password"`
+}
+
+type AccountRegisterResp {
+	Account string `json:"account"`
+}
+

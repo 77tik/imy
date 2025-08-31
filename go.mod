@@ -3,14 +3,17 @@ module imy
 go 1.24
 
 require (
+	github.com/bwmarrin/snowflake v0.3.0
 	github.com/charmbracelet/bubbles v0.21.0
 	github.com/charmbracelet/bubbletea v1.3.6
+	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
+	github.com/samber/lo v1.51.0
 	github.com/xuri/excelize/v2 v2.9.1
 	github.com/zeromicro/go-zero v1.9.0
 	github.com/zeromicro/x v0.0.0-20240408115609-8224c482b07e
@@ -33,7 +36,6 @@ require (
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.2.3-0.20250311203215-f60798e515dc // indirect
-	github.com/charmbracelet/lipgloss v1.1.0 // indirect
 	github.com/charmbracelet/x/ansi v0.9.3 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.13-0.20250311204145-2c3ea96c31dd // indirect
 	github.com/charmbracelet/x/term v0.2.1 // indirect

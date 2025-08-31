@@ -1,0 +1,23 @@
+syntax = "v1"
+
+@server (
+	group:  v2/user
+	prefix: /v2/user
+	jwt:    Auth
+)
+service imy-api {
+	@doc (
+		summary: "根据用户名得到账号"
+	)
+	@handler GetAccountByName
+	post /getName (GetAccountByNameReq) returns (GetAccountByNameResp)
+}
+
+type GetAccountByNameReq {
+	Nickname string `json:"nickname"`
+}
+
+type GetAccountByNameResp {
+	Account string `json:"account"`
+}
+

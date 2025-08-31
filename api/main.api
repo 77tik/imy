@@ -12,5 +12,9 @@ import (
 	"auth.api"
 	"friend.api"
 	"chat.api"
+	"auth_v2.api"
+	"verify_v2.api"
+	"user_v2.api"
+	"friend_v2.api"
 )
 

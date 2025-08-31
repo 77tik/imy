@@ -9,6 +9,10 @@ import (
 	auth "imy/internal/handler/auth"
 	chat "imy/internal/handler/chat"
 	friend "imy/internal/handler/friend"
+	v2auth "imy/internal/handler/v2/auth"
+	v2friend "imy/internal/handler/v2/friend"
+	v2user "imy/internal/handler/v2/user"
+	v2verify "imy/internal/handler/v2/verify"
 	version "imy/internal/handler/version"
 	"imy/internal/svc"
 
@@ -163,6 +167,81 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 			},
 		},
 		rest.WithPrefix("/api/friend"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				// 账号登陆
+				Method:  http.MethodPost,
+				Path:    "/login",
+				Handler: v2auth.AccountLoginHandler(serverCtx),
+			},
+		},
+		rest.WithPrefix("/v2/auth"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				// 账号注册
+				Method:  http.MethodPost,
+				Path:    "/register",
+				Handler: v2auth.AccountRegisterHandler(serverCtx),
+			},
+		},
+		rest.WithPrefix("/v2/auth"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				// 获取好友列表
+				Method:  http.MethodGet,
+				Path:    "/all",
+				Handler: v2friend.AllFriendHandler(serverCtx),
+			},
+		},
+		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		rest.WithPrefix("/v2/friend"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				// 根据用户名得到账号
+				Method:  http.MethodPost,
+				Path:    "/getName",
+				Handler: v2user.GetAccountByNameHandler(serverCtx),
+			},
+		},
+		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		rest.WithPrefix("/v2/user"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				// 获取验证消息(所有)
+				Method:  http.MethodGet,
+				Path:    "/all",
+				Handler: v2verify.AllVerifyHandler(serverCtx),
+			},
+			{
+				// 处理验证
+				Method:  http.MethodPost,
+				Path:    "/deal",
+				Handler: v2verify.DealVerifyHandler(serverCtx),
+			},
+			{
+				// 发送验证
+				Method:  http.MethodPost,
+				Path:    "/send",
+				Handler: v2verify.SendVerifyHandler(serverCtx),
+			},
+		},
+		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+		rest.WithPrefix("/v2/verify"),
 	)
 
 	server.AddRoutes(

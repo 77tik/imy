@@ -33,7 +33,7 @@ func main() {
 	handler.RegisterSwaggerHandlers(server, ctx)
 
 	// ws
-	handler.RegisterWsHandlers(server, ctx)
+	handler.RegisterWsHandlersV2(server, ctx)
 
 	ServerInit(ctx)
 

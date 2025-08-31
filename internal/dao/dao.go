@@ -17,45 +17,57 @@ import (
 
 var (
 	Q                      = new(Query)
+	Auth                   *auth
 	ChatConversation       *chatConversation
 	ChatConversationMember *chatConversationMember
 	ChatMessage            *chatMessage
 	Friend                 *friend
+	FriendV2               *friendV2
 	FriendVerify           *friendVerify
 	User                   *user
+	Verify                 *verify
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
+	Auth = &Q.Auth
 	ChatConversation = &Q.ChatConversation
 	ChatConversationMember = &Q.ChatConversationMember
 	ChatMessage = &Q.ChatMessage
 	Friend = &Q.Friend
+	FriendV2 = &Q.FriendV2
 	FriendVerify = &Q.FriendVerify
 	User = &Q.User
+	Verify = &Q.Verify
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
 		db:                     db,
+		Auth:                   newAuth(db, opts...),
 		ChatConversation:       newChatConversation(db, opts...),
 		ChatConversationMember: newChatConversationMember(db, opts...),
 		ChatMessage:            newChatMessage(db, opts...),
 		Friend:                 newFriend(db, opts...),
+		FriendV2:               newFriendV2(db, opts...),
 		FriendVerify:           newFriendVerify(db, opts...),
 		User:                   newUser(db, opts...),
+		Verify:                 newVerify(db, opts...),
 	}
 }
 
 type Query struct {
 	db *gorm.DB
 
+	Auth                   auth
 	ChatConversation       chatConversation
 	ChatConversationMember chatConversationMember
 	ChatMessage            chatMessage
 	Friend                 friend
+	FriendV2               friendV2
 	FriendVerify           friendVerify
 	User                   user
+	Verify                 verify
 }
 
 func (q *Query) Available() bool { return q.db != nil }
@@ -63,12 +75,15 @@ func (q *Query) Available() bool { return q.db != nil }
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
 		db:                     db,
+		Auth:                   q.Auth.clone(db),
 		ChatConversation:       q.ChatConversation.clone(db),
 		ChatConversationMember: q.ChatConversationMember.clone(db),
 		ChatMessage:            q.ChatMessage.clone(db),
 		Friend:                 q.Friend.clone(db),
+		FriendV2:               q.FriendV2.clone(db),
 		FriendVerify:           q.FriendVerify.clone(db),
 		User:                   q.User.clone(db),
+		Verify:                 q.Verify.clone(db),
 	}
 }
 
@@ -83,32 +98,41 @@ func (q *Query) WriteDB() *Query {
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
 		db:                     db,
+		Auth:                   q.Auth.replaceDB(db),
 		ChatConversation:       q.ChatConversation.replaceDB(db),
 		ChatConversationMember: q.ChatConversationMember.replaceDB(db),
 		ChatMessage:            q.ChatMessage.replaceDB(db),
 		Friend:                 q.Friend.replaceDB(db),
+		FriendV2:               q.FriendV2.replaceDB(db),
 		FriendVerify:           q.FriendVerify.replaceDB(db),
 		User:                   q.User.replaceDB(db),
+		Verify:                 q.Verify.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
+	Auth                   *authDo
 	ChatConversation       *chatConversationDo
 	ChatConversationMember *chatConversationMemberDo
 	ChatMessage            *chatMessageDo
 	Friend                 *friendDo
+	FriendV2               *friendV2Do
 	FriendVerify           *friendVerifyDo
 	User                   *userDo
+	Verify                 *verifyDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
+		Auth:                   q.Auth.WithContext(ctx),
 		ChatConversation:       q.ChatConversation.WithContext(ctx),
 		ChatConversationMember: q.ChatConversationMember.WithContext(ctx),
 		ChatMessage:            q.ChatMessage.WithContext(ctx),
 		Friend:                 q.Friend.WithContext(ctx),
+		FriendV2:               q.FriendV2.WithContext(ctx),
 		FriendVerify:           q.FriendVerify.WithContext(ctx),
 		User:                   q.User.WithContext(ctx),
+		Verify:                 q.Verify.WithContext(ctx),
 	}
 }
 

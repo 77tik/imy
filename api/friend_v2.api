@@ -1,0 +1,24 @@
+syntax = "v1"
+
+@server (
+	group:  v2/friend
+	prefix: /v2/friend
+	jwt:    Auth
+)
+service imy-api {
+	@doc (
+		summary: "获取好友列表"
+	)
+	@handler AllFriend
+	get /all returns (AllFriendResp)
+}
+
+type FriendV2Info {
+	Account  string `json:"account"`
+	Nickname string `json:"nickname"`
+}
+
+type AllFriendResp {
+	Infos []FriendV2Info `json:"infos"`
+}
+

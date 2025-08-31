@@ -60,7 +60,7 @@ func (l *EmailPasswordLoginLogic) EmailPasswordLogin(req *types.EmailPasswordLog
 	token, err := jwt.GenToken(jwt.JwtPayLoad{
 		Nickname: u.NickName,
 		UUID:     u.UUID,
-	}, l.svcCtx.Config.Auth.AccessSecret, int(l.svcCtx.Config.Auth.AccessExpire))
+	}, l.svcCtx.Config.Auth.AccessSecret, l.svcCtx.Config.Auth.AccessExpire)
 	if err != nil {
 		logx.Errorf("生成token失败：%v", err)
 		return nil, errcode.ErrAuthTokenFailed.WithError(err)

@@ -3,17 +3,19 @@ package svc
 import (
 	"context"
 	"fmt"
-	"time"
 	"sync"
+	"time"
 
-	"github.com/gorilla/websocket"
+	"github.com/bwmarrin/snowflake"
 	"github.com/go-redis/redis"
+	"github.com/gorilla/websocket"
 	"github.com/zeromicro/go-zero/core/logx"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"imy/internal/config"
 	"imy/pkg/dbgen"
+	ws "imy/pkg/websocket"
 )
 
 // WsHub maintains active websocket connections keyed by uuid.
@@ -116,6 +118,8 @@ type ServiceContext struct {
 	Redis  *redis.Client
 	Mysql  *gorm.DB
 	Ws     *WsHub
+	Snow   *snowflake.Node
+	WsHub  *ws.Hub
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -129,11 +133,19 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		logx.Errorf("MySql DSN: %s, err: %s", c.MySql.DSN, err)
 		panic("database cannot connected!")
 	}
+	Node, err := snowflake.NewNode(1)
+	if err != nil {
+		logx.Errorf("snowflake.NewNode err: %s", err)
+	}
+	wsHub := ws.NewHub()
+	go wsHub.Run()
 	return &ServiceContext{
 		Config: c,
 		Redis:  redisClient,
 		Mysql:  mysqldb,
 		Ws:     NewWsHub(),
+		Snow:   Node,
+		WsHub:  wsHub,
 	}
 }
 

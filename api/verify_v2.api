@@ -1,0 +1,47 @@
+syntax = "v1"
+
+@server (
+	group:  v2/verify
+	prefix: /v2/verify
+	jwt:    Auth
+)
+service imy-api {
+	@doc (
+		summary: "获取验证消息(所有)"
+	)
+	@handler AllVerify
+	get /all returns (AllVerifyResp)
+
+	@doc (
+		summary: "发送验证"
+	)
+	@handler SendVerify
+	post /send (SendVerifyReq)
+
+	@doc (
+		summary: "处理验证"
+	)
+	@handler DealVerify
+	post /deal (DealVerifyReq)
+}
+
+type VerifyInfo {
+	Id     uint32 `json:"id"`
+	SendId uint32 `json:"sendId"` // 自己
+	RevId  uint32 `json:"revId"` // 不管是别人加我还是我加别人 别人都是RecvId
+	Status uint8  `json:"status"` // 状态：1表示待处理，2表示成功，3表示失败
+}
+
+type AllVerifyResp {
+	Infos []VerifyInfo `json:"infos"`
+}
+
+type SendVerifyReq {
+	Account string `json:"account"`
+}
+
+type DealVerifyReq {
+	Id     uint32 `json:"id"`
+	Status uint8  `json:"status"`
+}
+

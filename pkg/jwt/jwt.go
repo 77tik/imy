@@ -47,7 +47,7 @@ type CustomClaims struct {
 	jwt.RegisteredClaims
 }
 
-func GenToken(payload JwtPayLoad, accessSecret string, expires int) (string, error) {
+func GenToken(payload JwtPayLoad, accessSecret string, expires int64) (string, error) {
 	claims := CustomClaims{
 		JwtPayLoad: payload,
 		RegisteredClaims: jwt.RegisteredClaims{

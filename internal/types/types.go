@@ -3,6 +3,24 @@
 
 package types
 
+type AccountLoginReq struct {
+	Account  string `json:"account"`
+	Password string `json:"password"`
+}
+
+type AccountLoginResp struct {
+	Token string `json:"token"`
+}
+
+type AccountRegisterReq struct {
+	Nickname string `json:"nickname"`
+	Password string `json:"password"`
+}
+
+type AccountRegisterResp struct {
+	Account string `json:"account"`
+}
+
 type AddFriendReq struct {
 	UUID  string `json:"uuid"`
 	RevId string `json:"revId"`
@@ -12,6 +30,14 @@ type AddMembersReq struct {
 	UUID           string   `head:"uuid"`
 	ConversationId uint32   `json:"conversationId"`
 	MemberUUIDs    []string `json:"memberUuids"`
+}
+
+type AllFriendResp struct {
+	Infos []FriendV2Info `json:"infos"`
+}
+
+type AllVerifyResp struct {
+	Infos []VerifyInfo `json:"infos"`
 }
 
 type AuthCheckReq struct {
@@ -53,6 +79,11 @@ type CreatePrivateConversationReq struct {
 	PeerUUID string `json:"peerUuid"`
 }
 
+type DealVerifyReq struct {
+	Id     uint32 `json:"id"`
+	Status uint8  `json:"status"`
+}
+
 type EmailCodeReq struct {
 	Code  string `json:"code"`
 	Email string `json:"email"`
@@ -84,6 +115,19 @@ type EmailPasswordRegisterResp struct {
 type FriendInfo struct {
 	UUID   string `json:"uuid"`
 	Notice string `json:"notice"`
+}
+
+type FriendV2Info struct {
+	Account  string `json:"account"`
+	Nickname string `json:"nickname"`
+}
+
+type GetAccountByNameReq struct {
+	Nickname string `json:"nickname"`
+}
+
+type GetAccountByNameResp struct {
+	Account string `json:"account"`
 }
 
 type GetConversationDetailReq struct {
@@ -213,6 +257,10 @@ type SendMessageResp struct {
 	CreatedAt   string `json:"createdAt"`
 }
 
+type SendVerifyReq struct {
+	Account string `json:"account"`
+}
+
 type UnreadItem struct {
 	ConversationId uint32 `json:"conversationId"`
 	Unread         uint32 `json:"unread"`
@@ -244,6 +292,13 @@ type ValidFriendReq struct {
 	UUID     string `json:"uuid"`     // 操作人id，一般是接受者操作
 	VerifyId uint32 `json:"verifyId"` // 验证表的id
 	Status   uint32 `json:"status"`   // 接受还是拒绝
+}
+
+type VerifyInfo struct {
+	Id     uint32 `json:"id"`
+	SendId uint32 `json:"sendId"` // 自己
+	RevId  uint32 `json:"revId"`  // 不管是别人加我还是我加别人 别人都是RecvId
+	Status uint8  `json:"status"` // 状态：1表示待处理，2表示成功，3表示失败
 }
 
 type VersionResponse struct {
