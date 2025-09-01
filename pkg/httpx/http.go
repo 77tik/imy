@@ -16,6 +16,7 @@ import (
 type RequestKey struct{}
 type ResponseKey struct{}
 
+// HttpInterceptor 拦截器，将请求和响应对象存储到上下文
 func HttpInterceptor(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
 	ctx = context.WithValue(ctx, RequestKey{}, r)
 	ctx = context.WithValue(ctx, ResponseKey{}, w)
@@ -23,6 +24,7 @@ func HttpInterceptor(ctx context.Context, w http.ResponseWriter, r *http.Request
 	return ctx
 }
 
+// GetRequest 从上下文获取原始请求对象，逻辑层会用到
 func GetRequest(ctx context.Context) (*http.Request, bool) {
 	row := ctx.Value(RequestKey{})
 	if r, ok := row.(*http.Request); ok {
@@ -31,6 +33,7 @@ func GetRequest(ctx context.Context) (*http.Request, bool) {
 	return nil, false
 }
 
+// GetResponse 从上下文获取原始响应对象，逻辑层会用到
 func GetResponse(ctx context.Context) (http.ResponseWriter, bool) {
 	row := ctx.Value(ResponseKey{})
 	if w, ok := row.(http.ResponseWriter); ok {
@@ -39,12 +42,15 @@ func GetResponse(ctx context.Context) (http.ResponseWriter, bool) {
 	return nil, false
 }
 
+// CustomResponseWriter 自定义响应写入器，用于记录是否写入过数据
 type CustomResponseWriter struct {
 	http.ResponseWriter
 
 	Wrote bool
 }
 
+// 如果JsonBaseResponse传入的是这个，那么就无法重复写入，防止logic层擅自写入，handler层不知道导致写了两次
+// 因为http响应头只能设置一次，多次调用writeHeader会导致panic，一旦写入响应体，http状态码就会被永久锁定
 func (c *CustomResponseWriter) Write(b []byte) (int, error) {
 	n, err := c.ResponseWriter.Write(b)
 	if err != nil {

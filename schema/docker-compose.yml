@@ -1,0 +1,17 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: imy-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root123   # 设置 root 密码
+      MYSQL_DATABASE: imydb         # 初始化数据库
+    ports:
+      - "3306:3306"
+    # 纯内存层写入：不挂载任何卷 → 关容器数据即消失
+    command: [
+      "mysqld",
+      "--default-authentication-plugin=mysql_native_password",
+      "--character-set-server=utf8mb4",
+      "--collation-server=utf8mb4_0900_ai_ci"
+    ]

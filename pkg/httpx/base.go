@@ -22,12 +22,13 @@ var (
 
 // BaseResponse is the base response struct.
 type BaseResponse[T any] struct {
-	// Code represents the business code, not the http status code.
+	// Code是业务状态码,不是HTTP响应码
 	Code int `json:"code" xml:"code"`
 	// Msg represents the business message, if Code = BusinessCodeOK,
 	// and Msg is empty, then the Msg will be set to BusinessMsgOk.
+	// Msg表示业务消息,如果Code是业务OK但是Msg是空的,那么Msg将被设置为ok
 	Msg string `json:"msg" xml:"msg"`
-	// Data represents the business data.
+	// 业务数据
 	Data T `json:"data,omitempty" xml:"data,omitempty"`
 }
 
@@ -47,22 +48,27 @@ type BaseError interface {
 	GetErr() error
 }
 
+// WrapBaseResponse 统一响应格式
 func wrapBaseResponse(ctx context.Context, v any) BaseResponse[any] {
 	var resp BaseResponse[any]
 	switch data := v.(type) {
 	case *errors.CodeMsg:
+		// go-zero框架提供的错误类型
 		resp.Code = data.Code
 		resp.Msg = data.Msg
 	case errors.CodeMsg:
 		resp.Code = data.Code
 		resp.Msg = data.Msg
 	case *status.Status:
+		// grpc状态类型，处理grpc调用返回的状态信息
 		resp.Code = int(data.Code())
 		resp.Msg = data.Message()
 	case interface{ GRPCStatus() *status.Status }:
+		// 处理实现了gRpc状态接口的类型
 		resp.Code = int(data.GRPCStatus().Code())
 		resp.Msg = data.GRPCStatus().Message()
 	case BaseError:
+		// 放Errcode了
 		if err := data.GetErr(); err != nil {
 			logc.Error(ctx, err)
 		}
@@ -72,6 +78,7 @@ func wrapBaseResponse(ctx context.Context, v any) BaseResponse[any] {
 		resp.Code = BusinessCodeError
 		resp.Msg = data.Error()
 	default:
+		// 正常包装业务响应
 		resp.Code = BusinessCodeOK
 		resp.Msg = BusinessMsgOk
 		resp.Data = v

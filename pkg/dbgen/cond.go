@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// unscoped是gorm绕过软删除限制的机制
 func WithDeletedList(withDeleted []bool) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		if len(withDeleted) == 0 || !withDeleted[0] {
@@ -20,8 +21,10 @@ func WithDeletedList(withDeleted []bool) func(db *gorm.DB) *gorm.DB {
 func WithDeleted(withDeleted bool) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		if withDeleted {
+			// 表示包含已删除数据
 			return db.Unscoped()
 		} else {
+			// 表示会只查询未删除记录
 			return db
 		}
 	}
