@@ -258,6 +258,7 @@ g.WithImportPkgPath("gorm.io/gorm", "gorm.io/plugin/optimisticlock", "gorm.io/pl
 - 自动为 JSON 类型字段添加序列化标签
 - 支持可空和非空 JSON 字段的类型生成
 - 自动生成对应的 Go 结构体类型
+- 基于 GORM serializer 机制实现透明的 JSON 序列化/反序列化
 
 **实际优化代码**：
 ```go
@@ -276,6 +277,66 @@ gen.FieldModify(func(f gen.Field) gen.Field {
 	return f
 }),
 ```
+
+**序列化机制说明**：
+
+1. **自动标签添加**：`dbgen` 会为数据库中的 JSON 类型字段自动添加 `serializer:json` 标签
+2. **GORM 序列化器**：基于 GORM 内置的 JSON 序列化器实现自动转换
+3. **透明操作**：开发者可以直接操作结构体，序列化过程完全透明
+
+**工作流程**：
+```go
+// 数据库表定义
+CREATE TABLE users (
+    profile JSON,
+    settings JSON NOT NULL
+);
+
+// 手动定义的结构体（开发者编写）
+type Profile struct {
+    Avatar   string `json:"avatar,omitempty"`
+    Bio      string `json:"bio,omitempty"`
+    Location string `json:"location,omitempty"`
+}
+
+type Settings struct {
+    Theme        string `json:"theme"`
+    Language     string `json:"language"`
+    Notification bool   `json:"notification"`
+}
+
+// dbgen 生成的模型（自动生成）
+type User struct {
+    Profile  *Profile `gorm:"column:profile;type:json;serializer:json"`
+    Settings Settings `gorm:"column:settings;type:json;not null;serializer:json"`
+}
+
+// 使用示例
+user := &User{
+    Profile: &Profile{
+        Avatar: "avatar.jpg",
+        Bio:    "Hello world",
+    },
+    Settings: Settings{
+        Theme:    "dark",
+        Language: "zh-CN",
+    },
+}
+
+// 保存时：GORM 自动调用 json.Marshal() 序列化为 JSON 字符串
+db.Create(user)
+
+// 读取时：GORM 自动调用 json.Unmarshal() 反序列化为结构体
+var loadedUser User
+db.First(&loadedUser)
+// loadedUser.Profile 和 loadedUser.Settings 已自动反序列化
+```
+
+**核心优势**：
+- **类型安全**：编译时检查，避免运行时错误
+- **零配置**：无需手动配置序列化器
+- **空值处理**：根据数据库约束自动决定指针类型
+- **完全透明**：开发者无需关心序列化细节
 
 #### 软删除增强
 - 自动配置 `deleted_at` 字段的软删除标记
@@ -1065,6 +1126,75 @@ if !params.CreatedAt.IsZero() {
 | 分页查询 | 无 | 内置分页和一致性保证 | 同时支持GORM和Gen两套API |
 | 数据一致性 | 无保证 | 事务查询统计 | `FindAndCountTransaction`保证一致性 |
 | 日志监控 | 基础日志 | 慢查询监控，参数化日志 | 可配置慢查询阈值，忽略正常错误 |
+
+## 常见问题 (FAQ)
+
+### JSON 字段处理
+
+**Q: dbgen 是否能自动生成 JSON 字段对应的 Go 结构体？**
+
+A: `dbgen` 不会根据 JSON 数据内容自动生成结构体字段，它只负责：
+1. 将 JSON 字段的类型从 `string` 改为结构体名称（如 `Profile`、`Settings`）
+2. 自动添加 `serializer:json` 标签
+3. 根据数据库约束决定是否使用指针类型
+
+具体的结构体定义需要开发者手动编写。
+
+**Q: 如何确保 JSON 序列化正确工作？**
+
+A: 确保以下几点：
+1. 数据库字段类型必须是 `JSON`
+2. 手动定义的结构体要有正确的 `json` 标签
+3. 结构体字段必须是可导出的（首字母大写）
+4. 确保 GORM 版本支持 `serializer` 标签
+
+**Q: JSON 字段为空时如何处理？**
+
+A: `dbgen` 会根据数据库约束自动处理：
+- 可空字段（`NULL`）：生成指针类型 `*Profile`，空值时为 `nil`
+- 非空字段（`NOT NULL`）：生成值类型 `Settings`，空值时为零值
+
+**Q: 如何处理复杂的嵌套 JSON 结构？**
+
+A: 在手动定义的结构体中正常使用嵌套结构：
+```go
+type Profile struct {
+    BasicInfo PersonalInfo `json:"basic_info"`
+    Settings  UserSettings `json:"settings"`
+}
+
+type PersonalInfo struct {
+    Name string `json:"name"`
+    Age  int    `json:"age"`
+}
+```
+
+### 性能优化
+
+**Q: JSON 序列化会影响性能吗？**
+
+A: 会有一定影响，但通常可以接受：
+1. 序列化发生在数据库操作时，不是每次字段访问
+2. GORM 的 JSON 序列化器经过优化
+3. 相比手动处理 JSON 字符串，类型安全的收益更大
+
+**Q: 如何监控 JSON 字段的序列化性能？**
+
+A: 使用 `dbgen` 内置的慢查询监控：
+```go
+// 配置慢查询阈值
+dbLog := &dbgen.DbLog{
+    SlowThreshold: 200 * time.Millisecond,
+}
+```
+
+### 最佳实践
+
+1. **结构体设计**：保持 JSON 结构体简单，避免过深的嵌套
+2. **字段命名**：使用清晰的字段名，与数据库列名保持一致
+3. **版本兼容**：为 JSON 结构体添加版本字段，便于后续升级
+4. **错误处理**：在业务逻辑中处理 JSON 反序列化可能的错误
+5. **测试覆盖**：为 JSON 字段的序列化/反序列化编写单元测试
 | 错误处理 | 基础处理 | 智能错误过滤 | 完善的参数检查和边界处理 |
 | API 设计 | 生成器导向 | 业务友好 | 链式调用，直观的函数命名 |
 | 数据库支持 | MySQL, PostgreSQL 等 | 增强 MySQL，原生 ClickHouse | 提供完整的ClickHouse类型映射 |

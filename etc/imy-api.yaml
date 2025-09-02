@@ -36,3 +36,7 @@ Redis:
   Password: '123456'
   DB: 0
 
+FileServers:
+  - ApiPrefix: /api/static
+    Dir: /opt/ld-hydropower/backend/static
+
