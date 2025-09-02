@@ -9,6 +9,7 @@ type StyleOption func(f *excelize.File) error
 
 func CreateExcelContent(titles []any, content [][]any, styleOpts ...StyleOption) (*excelize.File, error) {
 	// 创建excel
+	// 会初始化一个默认的sheet，如果再newsheet的话，会往后加sheet，这倒是没什么，但是上传excel文件的时候如果默认读取第一个sheet就遭老罪了，会什么都读不到
 	f := excelize.NewFile()
 	defer func() {
 		if err := f.Close(); err != nil {

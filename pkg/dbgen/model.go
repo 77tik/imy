@@ -7,6 +7,21 @@ import (
 	"gorm.io/gorm"
 )
 
+// 根据数据库字段的可空性自动决定生成的Go类型是否为指针类型
+// 1. 如果字段可空，返回指针类型（如：*int、*string）
+// 2. 如果字段非空，返回普通类型（如：int、string）
+// 数据库字段：name VARCHAR(100) NOT NULL
+// 调用：TypeNullable(columnType, "string")
+// 返回："string"
+// 数据库字段：email VARCHAR(100) NULL
+// 调用：TypeNullable(columnType, "string")
+// 返回："*string"
+// 数据库字段：age INT NOT NULL
+// 调用：TypeNullable(columnType, "int32")
+// 返回："int32"
+// 数据库字段：score INT NULL
+// 调用：TypeNullable(columnType, "int32")
+// 返回："*int32"
 func TypeNullable(columnType gorm.ColumnType, dataType string) string {
 	if n, ok := columnType.Nullable(); ok && n {
 		return fmt.Sprintf("*%s", dataType)
