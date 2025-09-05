@@ -90,11 +90,11 @@ func NewStore(config *StoreConfig) (*Store, error) {
 		Config:          config,
 		StoreID:         storeID,
 		CurrentCapacity: 0,
-		ConvTimelines:   make(map[string]*Timeline),
-		UserTimelines:   make(map[string]*Timeline),
-		UserCheckpoints: make(map[string]int64),
-		StoreIndex:      make(map[string][]*StoreIndex),
-		TimelineBlocks:  make(map[string]*TimelineBlock),
+		ConvTimelines:   make(map[string]*Timeline), // 会话timeline 存储库
+		UserTimelines:   make(map[string]*Timeline), // 个人timeline 同步库
+		UserCheckpoints: make(map[string]int64), // 个人同步库的checkpoint
+		StoreIndex:      make(map[string][]*StoreIndex), // 该store下会有很多timeline，这些timeline不可能所以tblock都是在当前store下的
+		TimelineBlocks:  make(map[string]*TimelineBlock), // 该store下的所有tblock
 		seqGenerator:    0,
 	}, nil
 }
@@ -109,10 +109,12 @@ func (s *Store) GetOrCreateConvTimeline(convID string) *Timeline {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	// 如果当前的timeline正好就在当前store下，直接返回
 	if tl, exists := s.ConvTimelines[convID]; exists {
 		return tl
 	}
 
+	// 万一当前timeline不在当前store下，我们就得用新的timeline来接管这个会话了
 	tl := &Timeline{
 		ID:        convID,
 		Type:      "conv",
@@ -120,14 +122,16 @@ func (s *Store) GetOrCreateConvTimeline(convID string) *Timeline {
 		LastSeqID: 0,
 	}
 
-	// 尝试从文件加载
+	// 尝试从文件加载，虽然该会话的历史消息是存在其他store的，但这个时候我们把它加载过来
+	// 这也就意味着不同的store，是可以独立处理同一个会话的不同时段的消息的
 	s.loadTimeline(tl)
 
+	// 这个时段的信息，我们就让当前store来接管
 	s.ConvTimelines[convID] = tl
 	return tl
 }
 
-// GetOrCreateUserTimeline 获取或创建用户时间线
+// GetOrCreateUserTimeline 获取或创建用户时间线 同理
 func (s *Store) GetOrCreateUserTimeline(userID string) *Timeline {
 	s.mu.Lock()
 	defer s.mu.Unlock()
